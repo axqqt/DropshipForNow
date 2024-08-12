@@ -1,5 +1,5 @@
 {
-  "name": "meme-coin-launcher",
+  "name": "tiktok-gemini-app",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,16 +9,14 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@nomiclabs/hardhat-ethers": "^2.2.3",
-    "@nomiclabs/hardhat-waffle": "^2.0.6",
-    "@openzeppelin/contracts": "^5.0.2",
-    "chai": "^5.1.1",
-    "ethereum-waffle": "^4.0.10",
-    "ethers": "^6.13.2",
-    "hardhat": "^2.22.8",
+    "@google/generative-ai": "^0.16.0",
+    "axios": "^1.7.3",
+    "file-saver": "^2.0.5",
+    "jszip": "^3.10.1",
     "next": "14.2.5",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "react-player": "^2.16.0"
   },
   "devDependencies": {
     "eslint": "^8",

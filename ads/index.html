@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ad Management System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        input, select, button {
+            padding: 5px;
+            font-size: 16px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>Ad Management System</h1>
+    
+    <h2>Create New Ad</h2>
+    <form id="adForm">
+        <input type="text" id="platform" placeholder="Platform" required>
+        <input type="text" id="campaignName" placeholder="Campaign Name" required>
+        <input type="number" id="budget" placeholder="Budget" step="0.01" required>
+        <select id="status" required>
+            <option value="">Select Status</option>
+            <option value="Active">Active</option>
+            <option value="Paused">Paused</option>
+            <option value="Completed">Completed</option>
+        </select>
+        <button type="submit">Create Ad</button>
+    </form>
+
+    <h2>Ad List</h2>
+    <table id="adTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Platform</th>
+                <th>Campaign Name</th>
+                <th>Budget</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        const API_URL = 'http://localhost:5000';
+
+        async function createAd(event) {
+            event.preventDefault();
+            const formData = {
+                platform: document.getElementById('platform').value,
+                campaign_name: document.getElementById('campaignName').value,
+                budget: parseFloat(document.getElementById('budget').value),
+                status: document.getElementById('status').value
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/ads`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData),
+                });
+
+                if (response.ok) {
+                    alert('Ad created successfully!');
+                    document.getElementById('adForm').reset();
+                    fetchAds();
+                } else {
+                    alert('Failed to create ad.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while creating the ad.');
+            }
+        }
+
+        async function fetchAds() {
+            try {
+                const response = await fetch(`${API_URL}/ads`);
+                const ads = await response.json();
+                const tableBody = document.querySelector('#adTable tbody');
+                tableBody.innerHTML = '';
+
+                ads.forEach(ad => {
+                    const row = tableBody.insertRow();
+                    row.insertCell(0).textContent = ad.id;
+                    row.insertCell(1).textContent = ad.platform;
+                    row.insertCell(2).textContent = ad.campaign_name;
+                    row.insertCell(3).textContent = ad.budget.toFixed(2);
+                    row.insertCell(4).textContent = ad.status;
+                });
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred while fetching ads.');
+            }
+        }
+
+        document.getElementById('adForm').addEventListener('submit', createAd);
+        fetchAds();
+    </script>
+</body>
+</html>
