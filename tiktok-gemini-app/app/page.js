@@ -8,16 +8,20 @@ import JSZip from 'jszip';
 import FileSaver from 'file-saver';
 
 export default function Home() {
+  const [loading,setLoading] = useState(false);
   const [prompt, setPrompt] = useState('');
   const [videos, setVideos] = useState([]);
   const [convertedVideos, setConvertedVideos] = useState([]);
 
   const handleSearch = async () => {
     try {
+      setLoading(true);
       const response = await axios.post('/api/search', { prompt });
       setVideos(response.data.videoUrls);
     } catch (error) {
       console.error('Error searching videos:', error);
+    }finally{
+      setLoading(false)
     }
   };
 

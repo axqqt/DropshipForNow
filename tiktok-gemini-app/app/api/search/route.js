@@ -2,9 +2,14 @@
 
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import axios from 'axios';
+import { NextResponse } from 'next/server';
 
-export default async function handler(req, res) {
-  const { prompt } = req.body;
+export async function POST(request) {
+  const { prompt } = await request.json();
+
+  if (!prompt) {
+    return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
+  }
 
   // Initialize Gemini AI
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -25,9 +30,9 @@ export default async function handler(req, res) {
     // Extract video URLs from TikTok response
     const videoUrls = tiktokResponse.data.items.map(item => item.video.download_addr.url_list[0]);
 
-    res.status(200).json({ videoUrls });
+    return NextResponse.json({ videoUrls });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'An error occurred' });
+    return NextResponse.json({ error: 'An error occurred' }, { status: 500 });
   }
 }
