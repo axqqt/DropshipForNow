@@ -8,7 +8,7 @@ import JSZip from 'jszip';
 import FileSaver from 'file-saver';
 
 export default function Home() {
-  const [loading,setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [prompt, setPrompt] = useState('');
   const [videos, setVideos] = useState([]);
   const [convertedVideos, setConvertedVideos] = useState([]);
@@ -20,8 +20,8 @@ export default function Home() {
       setVideos(response.data.videoUrls);
     } catch (error) {
       console.error('Error searching videos:', error);
-    }finally{
-      setLoading(false)
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -51,7 +51,9 @@ export default function Home() {
         onChange={(e) => setPrompt(e.target.value)}
         placeholder="Enter your prompt"
       />
-      <button onClick={handleSearch}>Search</button>
+      <button onClick={handleSearch} disabled={loading}>
+        {loading ? 'Searching...' : 'Search'}
+      </button>
 
       {videos.map((url, index) => (
         <div key={index}>
