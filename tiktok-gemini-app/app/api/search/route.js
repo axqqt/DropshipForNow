@@ -27,12 +27,20 @@ export async function POST(request) {
       },
     });
 
+    // Log the TikTok response for debugging
+    console.log('TikTok API Response:', JSON.stringify(tiktokResponse.data, null, 2));
+
     // Extract video URLs from TikTok response
-    const videoUrls = tiktokResponse.data.items.map(item => item.video.download_addr.url_list[0]);
+    let videoUrls = [];
+    if (tiktokResponse.data && tiktokResponse.data.items && Array.isArray(tiktokResponse.data.items)) {
+      videoUrls = tiktokResponse.data.items
+        .filter(item => item.video && item.video.download_addr && item.video.download_addr.url_list)
+        .map(item => item.video.download_addr.url_list[0]);
+    }
 
     return NextResponse.json({ videoUrls });
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: 'An error occurred' }, { status: 500 });
+    console.error('Error in /api/search:', error);
+    return NextResponse.json({ error: 'An error occurred', details: error.message }, { status: 500 });
   }
 }
