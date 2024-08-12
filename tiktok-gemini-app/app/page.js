@@ -48,6 +48,7 @@ export default function Home() {
       <input
         type="text"
         value={prompt}
+        style={{color:"black"}}
         onChange={(e) => setPrompt(e.target.value)}
         placeholder="Enter your prompt"
       />
