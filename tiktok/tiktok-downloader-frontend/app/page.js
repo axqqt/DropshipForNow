@@ -43,6 +43,7 @@ export default function Home() {
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Enter TikTok Video URL"
+            style={{color:"black"}}
             required
           />
           <button type="submit" disabled={loading}>
