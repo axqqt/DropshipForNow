@@ -2,17 +2,18 @@
 
 import { useState } from 'react';
 import Head from 'next/head';
-import axios from 'axios';
 import ReactPlayer from 'react-player';
 
 export default function Home() {
   const [prompt, setPrompt] = useState('');
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setMessage('');
     try {
       const response = await fetch('/api/search', {
         method: 'POST',
@@ -22,10 +23,15 @@ export default function Home() {
         body: JSON.stringify({ prompt }),
       });
       const data = await response.json();
-      setVideos(data.videos);
+      if (data.videos && data.videos.length > 0) {
+        setVideos(data.videos);
+      } else {
+        setVideos([]);
+        setMessage(data.message || 'No videos found. Please try a different prompt.');
+      }
     } catch (error) {
       console.error('Error:', error);
-      alert('Failed to get videos. Please try again.');
+      setMessage('Failed to get videos. Please try again.');
     }
     setLoading(false);
   };
@@ -68,6 +74,8 @@ export default function Home() {
           </button>
         </form>
 
+        {message && <p className="text-center mt-4">{message}</p>}
+
         <div className="video-list mt-8">
           {videos.map((video, index) => (
             <div key={index} className="video-item my-4">
@@ -76,14 +84,12 @@ export default function Home() {
                 <ReactPlayer url={video.hdplay_url} controls={true} width="100%" />
               </div>
               <p className="mt-2">
-                <a
-                  href={video.hdplay_url}
+                <button
                   onClick={() => handleDownload(video.hdplay_url)}
                   className="bg-blue-500 text-white py-2 px-4 rounded cursor-pointer"
-                  download={`video${index + 1}.mp4`}
                 >
                   Download Video
-                </a>
+                </button>
               </p>
             </div>
           ))}

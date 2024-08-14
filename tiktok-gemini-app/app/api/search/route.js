@@ -21,7 +21,11 @@ export async function POST(req) {
   try {
     // Generate multiple TikTok video URLs using Gemini AI
     const result = await model.generateContent(`Generate 15 TikTok video URLs based on this prompt: ${prompt}`);
-    const tiktokUrls = result.response.text().split('\n').map(url => url.trim());
+    const tiktokUrls = result.response.text().split('\n').filter(url => url.trim().startsWith('https://'));
+
+    if (tiktokUrls.length === 0) {
+      return NextResponse.json({ message: 'No valid TikTok URLs generated', videos: [] }, { status: 200 });
+    }
 
     const videoUrls = await Promise.all(tiktokUrls.map(async (url) => {
       const rapidApiUrl = "https://tiktok-video-no-watermark2.p.rapidapi.com/";
@@ -31,19 +35,30 @@ export async function POST(req) {
         "x-rapidapi-host": "tiktok-video-no-watermark2.p.rapidapi.com"
       };
 
-      const response = await axios.get(rapidApiUrl, { headers, params: querystring });
+      try {
+        const response = await axios.get(rapidApiUrl, { headers, params: querystring });
 
-      if (response.status === 200) {
-        return {
-          original_url: url,
-          hdplay_url: response.data.hdplay || "No HD play URL found",
-        };
-      } else {
-        return { error: `Failed to get video for URL: ${url}` };
+        if (response.status === 200 && response.data.hdplay) {
+          return {
+            original_url: url,
+            hdplay_url: response.data.hdplay,
+          };
+        } else {
+          return null;
+        }
+      } catch (error) {
+        console.error(`Error fetching video for URL: ${url}`, error);
+        return null;
       }
     }));
 
-    return NextResponse.json({ videos: videoUrls }, { status: 200 });
+    const validVideos = videoUrls.filter(video => video !== null);
+
+    if (validVideos.length === 0) {
+      return NextResponse.json({ message: 'No valid videos found', videos: [] }, { status: 200 });
+    }
+
+    return NextResponse.json({ videos: validVideos }, { status: 200 });
   } catch (error) {
     console.error('Error in /api/search-and-download:', error);
     return NextResponse.json({ error: 'An error occurred', details: error.message }, { status: 500 });
