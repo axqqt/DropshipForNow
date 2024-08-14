@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Head from 'next/head'; // Import Head from Next.js
 import axios from 'axios';
 import ReactPlayer from 'react-player';
-import VideoConverter from '../components/VideoConverter';
 
 export default function Home() {
   const [prompt, setPrompt] = useState('');
@@ -31,6 +30,15 @@ export default function Home() {
     setLoading(false);
   };
 
+  const handleDownload = () => {
+    const link = document.createElement('a');
+    link.href = video.hdplay_url;
+    link.setAttribute('download', 'video.mp4');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+  };
+
   return (
     <div className="container mx-auto p-4">
       <Head>
@@ -48,6 +56,7 @@ export default function Home() {
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Enter a prompt to find a TikTok video"
             className="border p-2 mb-4 w-full max-w-lg"
+            style={{ color: "black" }}
             required
           />
           <button
@@ -62,8 +71,19 @@ export default function Home() {
         {video && (
           <div className="result mt-8">
             <h2 className="text-xl font-semibold">Result:</h2>
-            <p className="mt-2">Original URL: <a href={video.original_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">{video.original_url}</a></p>
-            <p className="mt-2">HD Video URL: <a href={video.hdplay_url} target="_blank" rel="noopener noreferrer" className="text-blue-500 underline">{video.hdplay_url}</a></p>
+            <div className="video-player my-4">
+              <ReactPlayer url={video.hdplay_url} controls={true} width="100%" />
+            </div>
+            <p className="mt-2">
+              <a
+                href={video.hdplay_url}
+                onClick={handleDownload}
+                className="bg-blue-500 text-white py-2 px-4 rounded cursor-pointer"
+                download="video.mp4"
+              >
+                Download Video
+              </a>
+            </p>
           </div>
         )}
       </main>
