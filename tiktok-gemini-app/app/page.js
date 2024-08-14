@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from 'react';
-import Head from 'next/head'; // Import Head from Next.js
+import Head from 'next/head';
 import axios from 'axios';
 import ReactPlayer from 'react-player';
 
 export default function Home() {
   const [prompt, setPrompt] = useState('');
-  const [video, setVideo] = useState(null);
+  const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
@@ -22,17 +22,17 @@ export default function Home() {
         body: JSON.stringify({ prompt }),
       });
       const data = await response.json();
-      setVideo(data);
+      setVideos(data.videos);
     } catch (error) {
       console.error('Error:', error);
-      alert('Failed to get video. Please try again.');
+      alert('Failed to get videos. Please try again.');
     }
     setLoading(false);
   };
 
-  const handleDownload = () => {
+  const handleDownload = (url) => {
     const link = document.createElement('a');
-    link.href = video.hdplay_url;
+    link.href = url;
     link.setAttribute('download', 'video.mp4');
     document.body.appendChild(link);
     link.click();
@@ -54,7 +54,7 @@ export default function Home() {
             type="text"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            placeholder="Enter a prompt to find a TikTok video"
+            placeholder="Enter a prompt to find TikTok videos"
             className="border p-2 mb-4 w-full max-w-lg"
             style={{ color: "black" }}
             required
@@ -68,23 +68,34 @@ export default function Home() {
           </button>
         </form>
 
-        {video && (
-          <div className="result mt-8">
-            <h2 className="text-xl font-semibold">Result:</h2>
-            <div className="video-player my-4">
-              <ReactPlayer url={video.hdplay_url} controls={true} width="100%" />
+        <div className="video-list mt-8">
+          {videos.map((video, index) => (
+            <div key={index} className="video-item my-4">
+              <h2 className="text-xl font-semibold">Video {index + 1}:</h2>
+              <div className="video-player my-4">
+                <ReactPlayer url={video.hdplay_url} controls={true} width="100%" />
+              </div>
+              <p className="mt-2">
+                <a
+                  href={video.hdplay_url}
+                  onClick={() => handleDownload(video.hdplay_url)}
+                  className="bg-blue-500 text-white py-2 px-4 rounded cursor-pointer"
+                  download={`video${index + 1}.mp4`}
+                >
+                  Download Video
+                </a>
+              </p>
             </div>
-            <p className="mt-2">
-              <a
-                href={video.hdplay_url}
-                onClick={handleDownload}
-                className="bg-blue-500 text-white py-2 px-4 rounded cursor-pointer"
-                download="video.mp4"
-              >
-                Download Video
-              </a>
-            </p>
-          </div>
+          ))}
+        </div>
+
+        {videos.length > 0 && (
+          <button
+            className="bg-blue-500 text-white py-2 px-4 rounded mt-4"
+            onClick={handleSubmit}
+          >
+            Next 15 Videos
+          </button>
         )}
       </main>
     </div>
