@@ -1,14 +1,17 @@
 "use server";
-
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { NextRequest as req , NextResponse as res } from 'next/server';
 import axios from 'axios';
-import { NextResponse } from 'next/server';
 
-export async function POST(request) {
-  const { prompt } = await request.json();
+export async function POST(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method Not Allowed' });
+  }
+
+  const { prompt } = req.body;
 
   if (!prompt) {
-    return NextResponse.json({ error: 'Prompt is required' }, { status: 400 });
+    return res.status(400).json({ error: 'Prompt is required' });
   }
 
   // Initialize Gemini AI
@@ -16,31 +19,28 @@ export async function POST(request) {
   const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
   try {
-    // Generate search terms using Gemini
-    const result = await model.generateContent(prompt);
-    const searchTerms = result.response.text();
+    // Generate TikTok video URL using Gemini
+    const result = await model.generateContent(`Generate a TikTok video URL based on this prompt: ${prompt}`);
+    const tiktokUrl = result.response.text().trim();
 
-    // Search TikTok using generated terms
-    const tiktokResponse = await axios.get(`https://api2.musical.ly/aweme/v1/search/item/?keyword=${encodeURIComponent(searchTerms)}`, {
-      headers: {
-        'X-API-KEY': process.env.TIKTOK_API_KEY,
-      },
-    });
+    // Use RapidAPI to get the HD version of the video
+    const rapidApiUrl = "https://tiktok-video-no-watermark2.p.rapidapi.com/";
+    const querystring = { url: tiktokUrl, hd: "1" };
+    const headers = {
+      "x-rapidapi-key": process.env.RAPIDAPI_KEY,
+      "x-rapidapi-host": "tiktok-video-no-watermark2.p.rapidapi.com"
+    };
 
-    // Log the TikTok response for debugging
-    console.log('TikTok API Response:', JSON.stringify(tiktokResponse.data, null, 2));
+    const response = await axios.get(rapidApiUrl, { headers, params: querystring });
 
-    // Extract video URLs from TikTok response
-    let videoUrls = [];
-    if (tiktokResponse.data && tiktokResponse.data.items && Array.isArray(tiktokResponse.data.items)) {
-      videoUrls = tiktokResponse.data.items
-        .filter(item => item.video && item.video.download_addr && item.video.download_addr.url_list)
-        .map(item => item.video.download_addr.url_list[0]);
+    if (response.status === 200) {
+      const hdplay_url = response.data.hdplay || "No HD play URL found";
+      res.status(200).json({ hdplay_url, original_url: tiktokUrl });
+    } else {
+      res.status(response.status).json({ error: "Failed to get response from API" });
     }
-
-    return NextResponse.json({ videoUrls });
   } catch (error) {
-    console.error('Error in /api/search:', error);
-    return NextResponse.json({ error: 'An error occurred', details: error.message }, { status: 500 });
+    console.error('Error in /api/search-and-download:', error);
+    res.status(500).json({ error: 'An error occurred', details: error.message });
   }
 }
