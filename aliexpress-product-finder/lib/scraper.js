@@ -2,6 +2,14 @@ import puppeteer from 'puppeteer';
 import { Redis } from '@upstash/redis';
 import axios from 'axios';
 
+const defaultImageUrl = "/default-image.avif"
+
+const UPSTASH_REDIS_URL = process.env.UPSTASH_REDIS_URL
+const UPSTASH_REDIS_TOKEN = process.env.UPSTASH_REDIS_TOKEN
+if (!UPSTASH_REDIS_URL || !UPSTASH_REDIS_TOKEN) {
+  throw new Error('Please set UPSTASH_REDIS_URL and UPSTASH_REDIS_TOKEN in your environment variables');
+}
+
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_URL,
   token: process.env.UPSTASH_REDIS_TOKEN,
@@ -48,7 +56,6 @@ export async function scrapeAliExpress(searchTerm) {
   const page = await browser.newPage();
   await page.goto(`https://www.aliexpress.com/wholesale?SearchText=${encodeURIComponent(searchTerm)}`);
 
-  const defaultImageUrl = '/images/default-image.jpg'; // Path to your default image
   const products = await page.evaluate(async (defaultImageUrl) => {
     const currency = 'USD'; // Assume prices are initially in USD or set this based on local currency
     const exchangeRates = await fetch('https://api.exchangerate-api.com/v4/latest/USD')
@@ -81,7 +88,7 @@ export async function scrapeAliExpress(searchTerm) {
       return {
         name: el.querySelector('.multi--titleText--nXeOvyr')?.innerText || 'No name available',
         price: priceInUSD,
-        image: el.querySelector('.images--item--3XZa6xf img')?.src || defaultImageUrl,
+        image: el.querySelector('.images--item--3XZa6xf')?.src || defaultImageUrl,
         url: el.querySelector('a')?.href || 'No URL available',
       };
     }));

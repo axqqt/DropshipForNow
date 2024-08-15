@@ -80,7 +80,7 @@ export function exportToShopifyCsv(products) {
     'Variant Requires Shipping': product.requiresShipping || 'TRUE',
     'Variant Taxable': product.taxable || 'TRUE',
     'Variant Barcode': product.barcode || '',
-    'Image Src': product.imageSrc || '',
+    'Image Src': product.image || '',
     'Image Position': product.imagePosition || '',
     'Image Alt Text': product.imageAltText || '',
     'Gift Card': product.giftCard || 'FALSE',

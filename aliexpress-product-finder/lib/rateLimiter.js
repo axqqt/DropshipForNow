@@ -1,8 +1,14 @@
 import { Redis } from '@upstash/redis';
 
+const UPSTASH_REDIS_URL = process.env.UPSTASH_REDIS_URL
+const UPSTASH_REDIS_TOKEN = process.env.UPSTASH_REDIS_TOKEN
+if (!UPSTASH_REDIS_URL || !UPSTASH_REDIS_TOKEN) {
+  throw new Error('Please set UPSTASH_REDIS_URL and UPSTASH_REDIS_TOKEN in your environment variables');
+}
+
 const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_URL,
-  token: process.env.UPSTASH_REDIS_TOKEN,
+  url: UPSTASH_REDIS_URL,
+  token: UPSTASH_REDIS_TOKEN,
 });
 
 export async function rateLimiter(req) {

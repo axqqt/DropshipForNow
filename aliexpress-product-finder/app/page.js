@@ -3,7 +3,7 @@ import { useState } from 'react';
 import SearchForm from './Components/SearchForm';
 import ProductList from './Components/ProductList';
 import { saveAs } from 'file-saver';
-import Papa from 'papaparse'; // Import papaparse to convert JSON to CSV
+import { exportToShopifyCsv } from '@/lib/csvExporter';
 
 export default function Home() {
   const [products, setProducts] = useState([]);
@@ -31,7 +31,7 @@ export default function Home() {
 
   const handleExport = () => {
     // Convert products array to CSV
-    const csv = Papa.unparse(products);
+    const csv = exportToShopifyCsv(products);
 
     // Create a Blob from the CSV string
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
