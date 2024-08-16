@@ -3,8 +3,6 @@
 import { useState } from "react";
 import Head from "next/head";
 import ReactPlayer from "react-player";
-import JSZip from "jszip";
-import { saveAs } from "file-saver";
 
 export default function Home() {
   const [prompt, setPrompt] = useState("");
@@ -39,50 +37,35 @@ export default function Home() {
     setLoading(false);
   };
 
-  const handleDownload = async (url) => {
+  const handleDownload = (url) => {
     try {
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch video: ${response.statusText}`);
+      // Open the video URL in a new tab
+      const newTab = window.open(url, '_blank');
+      
+      // Check if the new tab was successfully opened
+      if (!newTab) {
+        throw new Error('Failed to open the new tab.');
       }
-      const blob = await response.blob();
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.setAttribute("download", "video.mp4");
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
+      
+      // Set a timeout to trigger the download after the new tab has loaded
+      setTimeout(() => {
+        // Create a temporary link to trigger the download
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "video.mp4";  // Ensure a filename is set
+        link.style.display = "none";
+        
+        // Append the link to the body
+        document.body.appendChild(link);
+        link.click();
+        
+        // Remove the link after triggering download
+        link.remove();
+      }, 500); // Adjust the timeout as needed
+
     } catch (error) {
       console.error("Error downloading video:", error);
       setMessage("Failed to download video. Please try again.");
-    }
-  };
-
-  const handleDownloadAll = async () => {
-    const zip = new JSZip();
-    const videoFolder = zip.folder("videos");
-
-    const downloadPromises = videos.map(async (video, index) => {
-      try {
-        const response = await fetch(video.play);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch video ${index + 1}: ${response.statusText}`);
-        }
-        const blob = await response.blob();
-        videoFolder.file(`video${index + 1}.mp4`, blob);
-      } catch (error) {
-        console.error(`Error downloading video ${index + 1}:`, error);
-        setMessage(`Failed to download video ${index + 1}.`);
-      }
-    });
-
-    try {
-      await Promise.all(downloadPromises);
-      const content = await zip.generateAsync({ type: "blob" });
-      saveAs(content, "videos.zip");
-    } catch (error) {
-      console.error("Error creating ZIP archive:", error);
-      setMessage("Failed to create ZIP archive. Please try again.");
     }
   };
 
@@ -102,7 +85,7 @@ export default function Home() {
           <input
             type="text"
             value={prompt}
-            style={{color:"black"}}
+            style={{ color: "black" }}
             onChange={(e) => setPrompt(e.target.value)}
             placeholder="Enter a prompt to find TikTok videos"
             className="border p-2 mb-4 w-full max-w-lg"
@@ -113,10 +96,10 @@ export default function Home() {
             <input
               type="number"
               value={vidNumber}
-              style={{color:"black"}}
+              style={{ color: "black" }}
               onChange={(e) => setVidNumber(Number(e.target.value))}
               className="border p-2 mb-4 w-full max-w-lg"
-             min={1}
+              min={1}
               max={10}
               required
             />
@@ -134,15 +117,7 @@ export default function Home() {
         {message && <p className="text-center mt-4">{message}</p>}
 
         <div className="video-list mt-8">
-          {videos.length > 0 && (
-            <button
-              className="bg-blue-500 text-white py-2 px-4 rounded mt-4"
-              onClick={handleDownloadAll}
-            >
-              Download All Videos as ZIP
-            </button>
-          )}
-          {videos.map((video, index) => (
+          {videos.length > 0 ? videos.map((video, index) => (
             <section key={index}>
               <div className="video-item my-4">
                 <h2 className="text-xl font-semibold">Video {index + 1}:</h2>
@@ -159,7 +134,7 @@ export default function Home() {
                 </p>
               </div>
             </section>
-          ))}
+          )) : <h1>No results found</h1>}
         </div>
       </main>
     </div>
