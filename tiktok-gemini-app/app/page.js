@@ -20,7 +20,7 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ prompt:prompt }),
       });
       const data = await response.json();
       if (data.videos && data.videos.length > 0) {
@@ -81,11 +81,11 @@ export default function Home() {
             <div key={index} className="video-item my-4">
               <h2 className="text-xl font-semibold">Video {index + 1}:</h2>
               <div className="video-player my-4">
-                <ReactPlayer url={video.hdplay_url} controls={true} width="100%" />
+                <ReactPlayer url={video.play} controls={true} width="100%" />
               </div>
               <p className="mt-2">
                 <button
-                  onClick={() => handleDownload(video.hdplay_url)}
+                  onClick={() => handleDownload(video.play)}
                   className="bg-blue-500 text-white py-2 px-4 rounded cursor-pointer"
                 >
                   Download Video
